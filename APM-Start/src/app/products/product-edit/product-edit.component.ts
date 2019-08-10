@@ -14,8 +14,22 @@ export class ProductEditComponent implements OnInit {
   pageTitle = 'Product Edit';
   errorMessage: string;
 
-  product: Product;
   private dataIsValid: { [key: string]: boolean } = {};
+
+  get isDirty(): boolean {
+    return JSON.stringify(this.originalProduct) !== JSON.stringify(this.currentProduct);
+  }
+
+  private currentProduct: Product;
+  private originalProduct: Product;
+
+  get product(): Product {
+    return this.currentProduct;
+  }
+  set product(value: Product) {
+    this.currentProduct = value;
+    this.originalProduct = { ...value };
+  }
 
   constructor(
     private productService: ProductService,
@@ -68,8 +82,16 @@ export class ProductEditComponent implements OnInit {
     if (path) {
       return this.dataIsValid[path];
     }
-    return (this.dataIsValid &&
-      Object.keys(this.dataIsValid).every(d => this.dataIsValid[d] === true));
+    return (
+      this.dataIsValid &&
+      Object.keys(this.dataIsValid).every(d => this.dataIsValid[d] === true)
+    );
+  }
+
+  reset(): void {
+    this.dataIsValid = null;
+    this.currentProduct = null;
+    this.originalProduct = null;
   }
 
   saveProduct(): void {
@@ -104,6 +126,7 @@ export class ProductEditComponent implements OnInit {
     if (message) {
       this.messageService.addMessage(message);
     }
+    this.reset();
     this.router.navigate(['/products']);
     // Navigate back to the product list
   }
@@ -112,17 +135,18 @@ export class ProductEditComponent implements OnInit {
     this.dataIsValid = {};
 
     // 'info' tab
-    if (this.product.productName &&
+    if (
+      this.product.productName &&
       this.product.productName.length >= 3 &&
-      this.product.productCode) {
+      this.product.productCode
+    ) {
       this.dataIsValid['info'] = true;
     } else {
       this.dataIsValid['info'] = false;
     }
 
     // 'tags' tab
-    if (this.product.category &&
-      this.product.category.length >= 3) {
+    if (this.product.category && this.product.category.length >= 3) {
       this.dataIsValid['tags'] = true;
     } else {
       this.dataIsValid['tags'] = false;
